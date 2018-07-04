@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\optional-dependency\OptionalDependency.csproj" />
-    <ProjectReference Include="..\plugin\PluginLibrary.csproj" />
+    <ProjectReference Include="..\OptionalDependency\OptionalDependency.csproj" />
+    <ProjectReference Include="..\PluginLibrary\PluginLibrary.csproj" />
   </ItemGroup>
 
   <ItemGroup>
