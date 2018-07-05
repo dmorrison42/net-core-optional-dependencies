@@ -10,19 +10,19 @@ namespace PluginLibrary
         // Requires assemblies to be loaded. LoadAssembliesOnStartup.Fody does a clever job.
         // Do as much caching as possible, Reflection can be heavy!
         static readonly List<Type> AllTypes = new List<Type>();
-            static readonly Type[] PluginTypes;
-            static Plugin()
+        static readonly Type[] PluginTypes;
+        static Plugin()
+        {
+            foreach (var reference in Assembly.GetEntryAssembly().GetReferencedAssemblies())
             {
-                foreach (var reference in Assembly.GetEntryAssembly().GetReferencedAssemblies())
+                try
                 {
-                    try
-                    {
-                        AllTypes.AddRange(Assembly.Load(reference).GetTypes());
-                    }
-                    catch (ReflectionTypeLoadException e)
-                    {
-                        AllTypes.AddRange(e.Types);
-                    }
+                    AllTypes.AddRange(Assembly.Load(reference).GetTypes());
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    AllTypes.AddRange(e.Types);
+                }
             }
 
             PluginTypes = AllTypes
@@ -31,16 +31,18 @@ namespace PluginLibrary
                 .ToArray();
         }
 
+        private static Dictionary<string, Type> ResultCache = new Dictionary<string, Type>();
         public static IPlugin New()
         {
-            var defaultType = typeof(DefaultPlugin);
-            var targetType = PluginTypes
-                .FirstOrDefault(t => t != defaultType);
-            if (targetType != null)
-            {
-                return (IPlugin) Activator.CreateInstance(targetType);
+            if (!ResultCache.ContainsKey("")) {
+                var defaultType = typeof(DefaultPlugin);
+                ResultCache[""] = PluginTypes
+                    .FirstOrDefault(t => t != defaultType);
             }
-            return new DefaultPlugin();
+            if (ResultCache[""] != null) {
+                return (IPlugin) Activator.CreateInstance(ResultCache[""]);
+            }
+            return null;
         }
     }
 }
