@@ -9,8 +9,8 @@ namespace PluginLibrary
     {
         // Requires assemblies to be loaded. LoadAssembliesOnStartup.Fody does a clever job.
         // Do as much caching as possible, Reflection can be heavy!
-        static List<Type> AllTypes = new List<Type>();
-        static Type TargetType;
+        static readonly List<Type> AllTypes = new List<Type>();
+        static readonly Type[] PluginTypes;
         static Plugin()
         {
             foreach (var reference in Assembly.GetEntryAssembly().GetReferencedAssemblies())
@@ -18,21 +18,20 @@ namespace PluginLibrary
                 AllTypes.AddRange(Assembly.Load(reference).GetTypes());
             }
 
-            var defaultType = typeof(DefaultPlugin);
-            TargetType = AllTypes
+            PluginTypes = AllTypes
                 .Where(t => typeof(IPlugin).IsAssignableFrom(t))
-                .Where(t => 
-                    t.IsClass)
-                .Where(t => 
-                    t != defaultType)
-                .FirstOrDefault();
+                .Where(t => t.IsClass)
+                .ToArray();
         }
 
         public static IPlugin New()
         {
-            if (TargetType != null)
+            var defaultType = typeof(DefaultPlugin);
+            var targetType = PluginTypes
+                .FirstOrDefault(t => t != defaultType);
+            if (targetType != null)
             {
-                return (IPlugin) Activator.CreateInstance(TargetType);
+                return (IPlugin) Activator.CreateInstance(targetType);
             }
             return new DefaultPlugin();
         }
