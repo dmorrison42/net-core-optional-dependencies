@@ -10,12 +10,19 @@ namespace PluginLibrary
         // Requires assemblies to be loaded. LoadAssembliesOnStartup.Fody does a clever job.
         // Do as much caching as possible, Reflection can be heavy!
         static readonly List<Type> AllTypes = new List<Type>();
-        static readonly Type[] PluginTypes;
-        static Plugin()
-        {
-            foreach (var reference in Assembly.GetEntryAssembly().GetReferencedAssemblies())
+            static readonly Type[] PluginTypes;
+            static Plugin()
             {
-                AllTypes.AddRange(Assembly.Load(reference).GetTypes());
+                foreach (var reference in Assembly.GetEntryAssembly().GetReferencedAssemblies())
+                {
+                    try
+                    {
+                        AllTypes.AddRange(Assembly.Load(reference).GetTypes());
+                    }
+                    catch (ReflectionTypeLoadException e)
+                    {
+                        AllTypes.AddRange(e.Types);
+                    }
             }
 
             PluginTypes = AllTypes
